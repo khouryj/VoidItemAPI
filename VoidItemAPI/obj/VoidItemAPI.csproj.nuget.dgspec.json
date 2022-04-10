@@ -14,6 +14,7 @@
         "outputPath": "C:\\Users\\boseph\\source\\repos\\VoidItemAPI\\VoidItemAPI\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
+          "C:\\Users\\boseph\\source\\repos\\VoidItemAPI\\NuGet.Config",
           "C:\\Users\\boseph\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
