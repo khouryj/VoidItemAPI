@@ -2834,19 +2834,20 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\boseph\\.nuget\\packages\\": {}
+    "C:\\Users\\josep\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\boseph\\source\\repos\\VoidItemAPI\\VoidItemAPI\\VoidItemAPI.csproj",
+      "projectUniqueName": "C:\\Users\\josep\\Source\\Repos\\VoidItemAPI\\VoidItemAPI\\VoidItemAPI.csproj",
       "projectName": "VoidItemAPI",
-      "projectPath": "C:\\Users\\boseph\\source\\repos\\VoidItemAPI\\VoidItemAPI\\VoidItemAPI.csproj",
-      "packagesPath": "C:\\Users\\boseph\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\boseph\\source\\repos\\VoidItemAPI\\VoidItemAPI\\obj\\",
+      "projectPath": "C:\\Users\\josep\\Source\\Repos\\VoidItemAPI\\VoidItemAPI\\VoidItemAPI.csproj",
+      "packagesPath": "C:\\Users\\josep\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\josep\\Source\\Repos\\VoidItemAPI\\VoidItemAPI\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\boseph\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\josep\\Source\\Repos\\VoidItemAPI\\NuGet.Config",
+        "C:\\Users\\josep\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -2908,7 +2909,7 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.101\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.201\\RuntimeIdentifierGraph.json"
       }
     }
   }
