@@ -1,82 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using static VoidItemAPI.VoidItemAPI;
+﻿using static VoidItemAPI.VoidItemAPI;
 using RoR2;
-using RoR2.ExpansionManagement;
 
 namespace VoidItemAPI
 {
+    public class CustomVoidItem
+    {
+        public ItemDef? itemDef { get; set; }
+        public VoidTransformation.TransformationType transformationType { get; set; }
+
+        public CustomVoidItem(ItemDef? itemDef, VoidTransformation.TransformationType type)
+        {
+            this.itemDef = itemDef;
+            transformationType = type;
+        }
+    }
+
     public static class VoidTransformation
     {
+        public enum TransformationType
+        {
+            Modify,
+            Remove
+        };
+
         /// <summary>
         /// Creates a void item for a single item.
         /// </summary>
-        /// <param name="VoidItem"></param>
-        /// <param name="TransformedItem"></param>
-        public static void CreateTransformation(ItemDef? VoidItem, ItemDef? TransformedItem)
-        {
-            Logger.LogWarning("Check 1");
-            if (!ValidateItem(VoidItem) || !ValidateItem(TransformedItem))
-            {
-                Logger.LogError("Problem initializing transformation for void item. Be sure to create item correctly and/or load transformations at the correct time.");
-                return;
-            }
-            if (!VoidTiers.Contains(VoidItem.tier))
-            {
-                Logger.LogWarning("Item: " + VoidItem.name + "'s ItemTier is not set to a void tier, was this intentional?");
-            }
-            Logger.LogWarning("Check 5");
-            VoidItem.requiredExpansion = ExpansionCatalog.expansionDefs.FirstOrDefault(def => def.nameToken == "DLC1_NAME");
-            Logger.LogWarning("Check 6");
-            voidToTransformations.Add(VoidItem!, new ItemDef[1] { TransformedItem! });
-            Logger.LogMessage("Transformation for " + VoidItem.name + " being setup...");
-        }
+        /// <param name="VoidItem">Void item to be created</param>
+        /// <param name="TransformedItem">Item to be transformed into the void item.</param>
+        public static void CreateTransformation(ItemDef? VoidItem, ItemDef? TransformedItem) => instance.voidToTransformations.Add(VoidItem, new ItemDef[] { TransformedItem });
 
         /// <summary>
         /// Creates a void item for more than one item.
         /// </summary>
-        /// <param name="VoidItem"></param>
-        /// <param name="TransformedItems"></param>
-        public static void CreateTransformation(ItemDef? VoidItem, ItemDef[]? TransformedItems)
-        {
-            if (!ValidateItem(VoidItem))
-            {
-                Logger.LogError("Problem initializing transformation for void item. Be sure to create item correctly and/or load transformations at the correct time.");
-                return;
-            }
-            if (!VoidTiers.Contains(VoidItem.tier))
-            {
-                Logger.LogWarning("Item: " + VoidItem.name + "'s ItemTier is not set to a void tier, was this intentional?");
-            }
-            if (TransformedItems == null || TransformedItems.Length <= 0)
-            {
-                Logger.LogError("Unable to create transformations, ensure ItemDef array is created correctly.");
-            }
+        /// <param name="VoidItem">Void item to be created</param>
+        /// <param name="TransformedItems">Items to be transformed into the void item</param>
+        public static void CreateTransformation(ItemDef? VoidItem, ItemDef[]? TransformedItems) => instance.voidToTransformations.Add(VoidItem, TransformedItems);
 
-            VoidItem.requiredExpansion = ExpansionCatalog.expansionDefs.FirstOrDefault(def => def.nameToken == "DLC1_NAME");
-            List<ItemDef> items = new List<ItemDef>();
-            foreach (ItemDef? item in TransformedItems)
-            {
-                if (!ValidateItem(item))
-                {
-                    Logger.LogError("Problem initializing a tranformation for " + VoidItem.name + ", ensure ItemDefs are valid.");
-                    continue;
-                }
-                items.Add(item!);
-            }
-            voidToTransformations.Add(VoidItem!, items.ToArray());
-        }
-
-        private static bool ValidateItem(ItemDef? item)
+        /// <summary>
+        /// Modify or remove existing transformations for VANILLA items.
+        /// </summary>
+        /// <param name="VoidItem">Void item to be modified or removed</param>
+        /// <param name="TransformedItem">Item to be transformed. If removing an entry, use the item that it is paired with.</param>
+        /// <param name="type">Transformation Types - Modify or Remove</param>
+        public static void ModifyTransformation(ItemDef? VoidItem, ItemDef? TransformedItem, TransformationType type)
         {
-            Logger.LogWarning("Check 2");
-            if (!item) { return false; }
-            Logger.LogWarning("Check 3");
-            if (string.IsNullOrEmpty(item.name) || string.IsNullOrEmpty(item.nameToken)) { return false; }
-            Logger.LogWarning("Check 4");
-            return true;
+            instance.modifyTransformations.Add(new CustomVoidItem(VoidItem, type), new ItemDef[] { TransformedItem });
         }
     }
 }
