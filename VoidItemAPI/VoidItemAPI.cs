@@ -21,6 +21,13 @@ namespace VoidItemAPI
         public BepInEx.Logging.ManualLogSource Logger;
         public Dictionary<ItemDef, ItemDef[]> voidToTransformations;
         public Harmony harmony;
+        public static ItemTier[] VoidTiers = new ItemTier[]
+        {
+            ItemTier.VoidTier1,
+            ItemTier.VoidTier2,
+            ItemTier.VoidTier3,
+            ItemTier.VoidBoss
+        };
 
         private void Awake()
         {
@@ -30,78 +37,6 @@ namespace VoidItemAPI
             instance.harmony = new Harmony(MODGUID);
 
             new PatchClassProcessor(instance.harmony, typeof(VoidItemAPI)).Patch();
-        }
-
-        /// <summary>
-        /// Creates a void item for a single item.
-        /// </summary>
-        /// <param name="VoidItem"></param>
-        /// <param name="TransformedItem"></param>
-        /// <param name="requiresDLC"></param>
-        public static void CreateTransformation(ItemDef VoidItem, ItemDef TransformedItem, bool requiresDLC = true)
-        {
-            if (!ValidateItem(VoidItem) || !ValidateItem(TransformedItem))
-            {
-                instance.Logger.LogError("Problem initializing transformation for void item. Be sure to create item correctly and/or load transformations at the correct time.");
-                return;
-            }
-
-            if (requiresDLC)
-            {
-                VoidItem.requiredExpansion = ExpansionCatalog.expansionDefs.FirstOrDefault(def => def.nameToken == "DLC1_NAME");
-            }
-
-            instance.voidToTransformations.Add(VoidItem, new ItemDef[1] { TransformedItem });
-            instance.Logger.LogMessage("Transformation for " + VoidItem.name + " being setup...");
-        }
-
-        /// <summary>
-        /// Creates a void item for more than one item.
-        /// </summary>
-        /// <param name="VoidItem"></param>
-        /// <param name="TransformedItems"></param>
-        /// <param name="requiresDLC"></param>
-        public static void CreateTransformation(ItemDef VoidItem, ItemDef[] TransformedItems, bool requiresDLC = true)
-        {
-            if (!ValidateItem(VoidItem))
-            {
-                instance.Logger.LogError("Problem initializing transformation for void item. Be sure to create item correctly and/or load transformations at the correct time.");
-                return;
-            }
-
-            if (requiresDLC)
-            {
-                VoidItem.requiredExpansion = ExpansionCatalog.expansionDefs.FirstOrDefault(def => def.nameToken == "DLC1_NAME");
-            }
-            
-            List<ItemDef> items = new List<ItemDef>();
-            foreach (ItemDef item in TransformedItems)
-            {
-                if(!ValidateItem(item))
-                {
-                    instance.Logger.LogError("Problem initializing a tranformation for " + VoidItem.name + ", ensure ItemDefs are valid.");
-                    continue;
-                }
-                items.Add(item);
-            }
-            instance.voidToTransformations.Add(VoidItem, items.ToArray());
-        }
-
-        private static bool ValidateItem(ItemDef item)
-        {
-            if (!item || item.name == null || item.nameToken == null) { return false; }
-            return true;
-        }
-
-        /// <summary>
-        /// Get an ItemDef based on a string of its internal item name.
-        /// </summary>
-        /// <param name="ItemName"></param>
-        /// <returns></returns>
-        public static ItemDef GetItemDef(string ItemName)
-        {
-            if (!ItemCatalog.itemNames.Contains(ItemName)) { return null; }
-            return ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(ItemName));
         }
 
         [HarmonyPrefix, HarmonyPatch(typeof(RoR2.Items.ContagiousItemManager), nameof(RoR2.Items.ContagiousItemManager.Init))]
