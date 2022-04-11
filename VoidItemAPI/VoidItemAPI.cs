@@ -17,10 +17,9 @@ namespace VoidItemAPI
         public const string MODVERSION = "1.0.0";
         public const string MODGUID = "com.RumblingJOSEPH.VoidItemAPI";
 
-        public static VoidItemAPI instance;
-        public BepInEx.Logging.ManualLogSource Logger;
-        public Dictionary<ItemDef, ItemDef[]> voidToTransformations;
-        public Harmony harmony;
+        public static BepInEx.Logging.ManualLogSource Logger;
+        public static Dictionary<ItemDef, ItemDef[]> voidToTransformations;
+        public static Harmony harmony;
         public static ItemTier[] VoidTiers = new ItemTier[]
         {
             ItemTier.VoidTier1,
@@ -30,26 +29,25 @@ namespace VoidItemAPI
         };
 
         private void Awake()
-        {
-            instance = this; 
-            instance.Logger = base.Logger;
-            instance.voidToTransformations = new Dictionary<ItemDef, ItemDef[]>();
-            instance.harmony = new Harmony(MODGUID);
+        { 
+            Logger = base.Logger;
+            voidToTransformations = new Dictionary<ItemDef, ItemDef[]>();
+            harmony = new Harmony(MODGUID);
 
-            new PatchClassProcessor(instance.harmony, typeof(VoidItemAPI)).Patch();
+            new PatchClassProcessor(harmony, typeof(VoidItemAPI)).Patch();
         }
 
         [HarmonyPrefix, HarmonyPatch(typeof(RoR2.Items.ContagiousItemManager), nameof(RoR2.Items.ContagiousItemManager.Init))]
         private static void InitializeTransformations()
         {
-            if (instance.voidToTransformations.Count <= 0)
+            if (voidToTransformations.Count <= 0)
             {
-                instance.Logger.LogError("Created void items too late! Cancelling transformation.");
+                Logger.LogError("Created void items too late! Cancelling transformation.");
                 return;
             }
 
             List<ItemDef.Pair> pairs = new List<ItemDef.Pair>();
-            foreach (KeyValuePair<ItemDef, ItemDef[]> pair in instance.voidToTransformations)
+            foreach (KeyValuePair<ItemDef, ItemDef[]> pair in voidToTransformations)
             {
                 foreach (ItemDef item in pair.Value)
                 {
@@ -57,7 +55,7 @@ namespace VoidItemAPI
                 }
             }
             ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].AddRangeToArray(pairs.ToArray());
-            instance.Logger.LogMessage("Tranformations created successfully!");
+            Logger.LogMessage("Tranformations created successfully!");
         }
     }
 }
