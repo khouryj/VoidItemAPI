@@ -64,7 +64,7 @@ namespace VoidItemAPI
             foreach (CustomVoidEntry entry in defs)
             {
                 ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].AddToArray(new ItemDef.Pair() { itemDef1 = entry.TransformedItem, itemDef2 = entry.VoidItem });
-                instance.Logger.LogInfo("Successfully created a transformation for " + entry.VoidItem.name + "!");
+                instance.Logger.LogMessage("Successfully created a transformation for " + entry.VoidItem.name + "!");
             }
             foreach (CustomVoidEntry entry in names)
             {
@@ -75,7 +75,7 @@ namespace VoidItemAPI
                     continue;
                 }
                 ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].AddToArray(new ItemDef.Pair() { itemDef1 = itemDef, itemDef2 = entry.VoidItem });
-                instance.Logger.LogInfo("Successfully created a transformation for " + entry.VoidItem.name + "!");
+                instance.Logger.LogMessage("Successfully created a transformation for " + entry.VoidItem.name + "!");
             }
         }
 
