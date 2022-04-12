@@ -18,7 +18,6 @@ namespace VoidItemAPI
         public const string MODGUID = "com.RumblingJOSEPH.VoidItemAPI";
         public static VoidItemAPI instance;
         public BepInEx.Logging.ManualLogSource Logger;
-        Dictionary<ItemDef, ItemDef[]> transformations;
         public List<CustomVoidEntry> entries;
         public Harmony harmony;
         public bool tooLate = false;
@@ -36,7 +35,6 @@ namespace VoidItemAPI
             instance = this;
             instance.Logger = base.Logger;
             instance.entries = new List<CustomVoidEntry>();
-            instance.transformations = new Dictionary<ItemDef, ItemDef[]>();
             instance.harmony = new Harmony(MODGUID);
 
             new PatchClassProcessor(harmony, typeof(VoidItemAPI)).Patch();
