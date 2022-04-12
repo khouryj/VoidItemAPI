@@ -16,11 +16,13 @@ namespace VoidItemAPI
         public const string MODNAME = "VoidItemAPI";
         public const string MODVERSION = "1.0.0";
         public const string MODGUID = "com.RumblingJOSEPH.VoidItemAPI";
-
         public static VoidItemAPI instance;
         public BepInEx.Logging.ManualLogSource Logger;
-        public Dictionary<ItemDef?, ItemDef[]?> voidToTransformations;
+        Dictionary<ItemDef, ItemDef[]> transformations;
+        public List<CustomVoidEntry> entries;
         public Harmony harmony;
+        public bool tooLate = false;
+        public bool defsUsed = true;
         public static ItemTier[] VoidTiers = new ItemTier[]
         {
             ItemTier.VoidTier1,
@@ -32,9 +34,10 @@ namespace VoidItemAPI
         private void Awake()
         { 
             instance = this;
-            Logger = base.Logger;
-            voidToTransformations = new Dictionary<ItemDef, ItemDef[]>();
-            harmony = new Harmony(MODGUID);
+            instance.Logger = base.Logger;
+            instance.entries = new List<CustomVoidEntry>();
+            instance.transformations = new Dictionary<ItemDef, ItemDef[]>();
+            instance.harmony = new Harmony(MODGUID);
 
             new PatchClassProcessor(harmony, typeof(VoidItemAPI)).Patch();
         }
@@ -42,54 +45,55 @@ namespace VoidItemAPI
         [HarmonyPrefix, HarmonyPatch(typeof(RoR2.Items.ContagiousItemManager), nameof(RoR2.Items.ContagiousItemManager.Init))]
         private static void InitializeTransformations()
         {
-            if (instance.voidToTransformations.Count <= 0)
+            instance.tooLate = true;
+            if (instance.entries.Count <= 0)
             {
-                instance.Logger.LogError("Created void items too late! Cancelling transformation.");
+                instance.Logger.LogWarning("No void items in the entries list! Cancelling transformation.");
                 return;
             }
-
-            List<ItemDef.Pair> pairs = new List<ItemDef.Pair>();
-            foreach (KeyValuePair<ItemDef?, ItemDef[]?> pair in instance.voidToTransformations)
+            foreach (CustomVoidEntry entry in instance.entries)
             {
-                if (!ValidateItem(pair.Key))
+                if (entry.VoidItem.requiredExpansion == null)
                 {
-                    instance.Logger.LogError("Initialization failed, ensure the VoidItem ItemDef has been properly created before intializing or modifying, and that the method is not being called too late.");
-                    continue;
-                }
-                if (!VoidTiers.Contains(pair.Key!.tier))
-                {
-                    instance.Logger.LogWarning(pair.Key!.name + "'s item tier is not set to a void tier. Is this intended?");
-                }
-                pair.Key.requiredExpansion = ExpansionCatalog.expansionDefs.FirstOrDefault(def => def.nameToken == "DLC1_NAME");
-                foreach (ItemDef item in pair.Value)
-                {
-                    if (!ValidateItem(item))
-                    {
-                        instance.Logger.LogError("Error initializing transformation for " + pair.Key.name + ", check CreateTransformation declaration.");
-                        continue;
-                    }
-                    pairs.Add(new ItemDef.Pair { itemDef1 = item!, itemDef2 = pair!.Key });
+                    entry.VoidItem.requiredExpansion = ExpansionCatalog.expansionDefs.FirstOrDefault(x => x.nameToken == "DLC1_NAME");
                 }
             }
-            UpdateRelationshipsTable(ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].AddRangeToArray(pairs.ToArray()));
+            IEnumerable<CustomVoidEntry> defs = instance.entries.Where(x => x.transformType == CustomVoidEntry.TransformType.Def);
+            IEnumerable<CustomVoidEntry> names = instance.entries.Where(x => x.transformType == CustomVoidEntry.TransformType.Name);
+            
+            foreach (CustomVoidEntry entry in defs)
+            {
+                ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].AddToArray(new ItemDef.Pair() { itemDef1 = entry.TransformedItem, itemDef2 = entry.VoidItem });
+                instance.Logger.LogInfo("Successfully created a transformation for " + entry.VoidItem.name + "!");
+            }
+            foreach (CustomVoidEntry entry in names)
+            {
+                ItemDef itemDef = ValidateItemString(entry.TransformedItemName);
+                if (!ValidateItem(itemDef))
+                {
+                    instance.Logger.LogError("Failed to create a transformation for " + entry.VoidItem.name + " on transformation name " + entry.TransformedItemName + ".");
+                    continue;
+                }
+                ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].AddToArray(new ItemDef.Pair() { itemDef1 = itemDef, itemDef2 = entry.VoidItem });
+                instance.Logger.LogInfo("Successfully created a transformation for " + entry.VoidItem.name + "!");
+            }
         }
 
-        private static bool ValidateItem(ItemDef? item)
+        public static bool ValidateItem(ItemDef? item)
         {
             if (!item) { return false; }
             if (string.IsNullOrEmpty(item!.name) || string.IsNullOrEmpty(item!.nameToken)) { return false; }
             return true;
         }
 
-        private static void UpdateRelationshipsTable(ItemDef.Pair[] pairs)
+        private static ItemDef ValidateItemString(string itemName)
         {
-            if (pairs.Length <= 0)
+            if (!ItemCatalog.itemNames.Contains(itemName))
             {
-                instance.Logger.LogError("Problem initializing transformation table, aborting.");
-                return;
+                instance.Logger.LogError("The item catalog does not contain an item called: " + itemName + ". Aborting this transformation.");
+                return null;
             }
-            ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = pairs;
-            instance.Logger.LogMessage("Transformations updated successfuly!");
+            return ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(itemName));
         }
     }
 }
