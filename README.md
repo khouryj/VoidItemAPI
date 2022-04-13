@@ -2,6 +2,8 @@
 
 So I figured why not make this API because a lot of people ask how to create a void item, and this keeps the process really simple for people.
 
+You will need to add the DLL as a reference for your project, which you can acquire by downloading off the thunderstore or from the "Current DLL" folder in this repo.
+
 I will be making a wiki for how to create void items manually on r2wiki, in case you may not to depend on this API.
 
 # Guide
