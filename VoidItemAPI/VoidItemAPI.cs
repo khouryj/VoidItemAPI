@@ -20,6 +20,7 @@ namespace VoidItemAPI
         public BepInEx.Logging.ManualLogSource Logger;
         public List<CustomVoidEntry> entries;
         public List<VoidItemModification> modifications;
+        public List<ItemDef.Pair> newTransformationTable;
         public Harmony harmony;
         public bool tooLate = false;
         public bool defsUsed = true;
@@ -45,10 +46,11 @@ namespace VoidItemAPI
         [HarmonyPrefix, HarmonyPatch(typeof(RoR2.Items.ContagiousItemManager), nameof(RoR2.Items.ContagiousItemManager.Init))]
         private static void InitializeTransformations()
         {
+            instance.newTransformationTable = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].ToList();
             instance.tooLate = true;
-            if (instance.entries.Count <= 0)
+            if (instance.entries.Count <= 0 && instance.modifications.Count <= 0)
             {
-                instance.Logger.LogWarning("No void items in the entries list! Cancelling transformation.");
+                instance.Logger.LogWarning("No void items in the entries and modifications list! Cancelling transformation.");
                 return;
             }
             foreach (CustomVoidEntry entry in instance.entries)
@@ -63,7 +65,7 @@ namespace VoidItemAPI
             
             foreach (CustomVoidEntry entry in defs)
             {
-                ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].AddToArray(new ItemDef.Pair() { itemDef1 = entry.TransformedItem, itemDef2 = entry.VoidItem });
+                instance.newTransformationTable.Add(new ItemDef.Pair() { itemDef1 = entry.TransformedItem, itemDef2 = entry.VoidItem });
                 instance.Logger.LogMessage("Successfully created a transformation for " + entry.VoidItem.name + "!");
             }
             foreach (CustomVoidEntry entry in names)
@@ -74,9 +76,45 @@ namespace VoidItemAPI
                     instance.Logger.LogError("Failed to create a transformation for " + entry.VoidItem.name + " on transformation name " + entry.TransformedItemName + ".");
                     continue;
                 }
-                ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].AddToArray(new ItemDef.Pair() { itemDef1 = itemDef, itemDef2 = entry.VoidItem });
+                instance.newTransformationTable.Add(new ItemDef.Pair() { itemDef1 = itemDef, itemDef2 = entry.VoidItem });
                 instance.Logger.LogMessage("Successfully created a transformation for " + entry.VoidItem.name + "!");
             }
+
+            IEnumerable<VoidItemModification> modDefs = instance.modifications.Where(x => x.transformType == CustomVoidEntry.TransformType.Def);
+            IEnumerable<VoidItemModification> modNames = instance.modifications.Where(x => x.transformType == CustomVoidEntry.TransformType.Name);
+
+            foreach (VoidItemModification mod in modDefs)
+            {
+                if (mod.modification == VoidItemModification.ModificationType.Modify)
+                {
+                    ChangeTransformation(mod);
+                }
+                else
+                {
+                    RemoveTransformation(mod);
+                }
+            }
+            foreach (VoidItemModification mod in modNames)
+            {
+                ItemDef VoidItem = ValidateItemString(mod.VoidItemName);
+                ItemDef CurrentTransformedItem = ValidateItemString(mod.CurrentTransformedItemName);
+                ItemDef NewTransformation = ValidateItemString(mod.NewTransformationName);
+                if (!ValidateItem(VoidItem) || !ValidateItem(CurrentTransformedItem) || !ValidateItem(NewTransformation))
+                {
+                    instance.Logger.LogError("Issue modifying transformation for " + mod.VoidItemName + ". Aborting this modification.");
+                    continue;
+                }
+                if (mod.modification == VoidItemModification.ModificationType.Modify)
+                {
+                    ChangeTransformation(new VoidItemModification(VoidItem, CurrentTransformedItem, NewTransformation, mod.modification));
+                }
+                else
+                {
+                    RemoveTransformation(new VoidItemModification(VoidItem, CurrentTransformedItem, NewTransformation, mod.modification));
+                }
+            }
+
+            ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = instance.newTransformationTable.ToArray();
         }
 
         public static bool ValidateItem(ItemDef? item)
@@ -94,6 +132,35 @@ namespace VoidItemAPI
                 return null;
             }
             return ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(itemName));
+        }
+
+        private static bool IsInTable(ItemDef def, ItemDef transformation, out ItemDef.Pair pair)
+        {
+            pair = new ItemDef.Pair { itemDef1 = transformation, itemDef2 = def};
+            return instance.newTransformationTable.Contains(pair);
+        }
+
+        private static void ChangeTransformation(VoidItemModification mod)
+        {
+            if (!IsInTable(mod.VoidItem, mod.CurrentTransformedItem, out ItemDef.Pair pair))
+            {
+                instance.Logger.LogError("Transformation between " + mod.VoidItem.name + " and " + mod.CurrentTransformedItem.name + " does not exist in the transformation table. Aborting modification.");
+                return;
+            }
+            instance.newTransformationTable.Remove(pair);
+            instance.newTransformationTable.Add(new ItemDef.Pair { itemDef1 = mod.NewTransformation, itemDef2 = mod.VoidItem });
+            instance.Logger.LogMessage("Transformation registered for " + mod.VoidItem.name + " is now " + mod.NewTransformation.name + ".");
+        }
+
+        private static void RemoveTransformation(VoidItemModification mod)
+        {
+            if (!IsInTable(mod.VoidItem, mod.CurrentTransformedItem, out ItemDef.Pair pair))
+            {
+                instance.Logger.LogError("Transformation between " + mod.VoidItem.name + " and " + mod.CurrentTransformedItem.name + " does not exist in the transformation table. Aborting removal.");
+                return;
+            }
+            instance.newTransformationTable.Remove(pair);
+            instance.Logger.LogMessage("Transformation between " + mod.VoidItem.name + " and " + mod.CurrentTransformedItem.name + " has been successfully removed.");
         }
     }
 }
