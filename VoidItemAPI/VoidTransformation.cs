@@ -31,6 +31,47 @@ namespace VoidItemAPI
         }
     }
 
+    public class VoidItemModification
+    {
+        public ItemDef VoidItem;
+        public ItemDef CurrentTransformedItem;
+        public ItemDef NewTransformation;
+        public string VoidItemName;
+        public string CurrentTransformedItemName;
+        public string NewTransformationName;
+        public ModificationType modification;
+        public CustomVoidEntry.TransformType transformType;
+        public enum ModificationType
+        {
+            Modify,
+            Remove
+        }
+
+        public VoidItemModification(ItemDef VoidItem, ItemDef CurrentTransformedItem, ItemDef? NewTransformation, ModificationType modification)
+        {
+            this.VoidItem=VoidItem;
+            this.CurrentTransformedItem=CurrentTransformedItem;
+            if (modification == ModificationType.Modify)
+            {
+                this.NewTransformation = NewTransformation!;
+            }
+            this.modification = modification;
+            this.transformType = CustomVoidEntry.TransformType.Def;
+        }
+
+        public VoidItemModification(string VoidItemName, string CurrentTransformedItemName, string? NewTransformationName, ModificationType modification)
+        {
+            this.VoidItemName=VoidItemName;
+            this.CurrentTransformedItemName=CurrentTransformedItemName;
+            if (modification == ModificationType.Modify)
+            {
+                this.NewTransformationName=NewTransformationName!;
+            }
+            this.modification = modification;
+            this.transformType = CustomVoidEntry.TransformType.Name;
+        }
+    }
+
     public static class VoidTransformation
     {
         /// <summary>
@@ -125,6 +166,65 @@ namespace VoidItemAPI
             {
                 CreateTransformation(VoidItem, itemName);
             }
+        }
+
+        public static void ModifyTransformation(ItemDef? VoidItem, ItemDef? CurrentTransformedItem, ItemDef? ItemToTransformInto, VoidItemModification.ModificationType modification)
+        {
+            if (!ValidateItem(VoidItem))
+            {
+                instance.Logger.LogError("Void item ItemDef sent to ModifyTransformation is not valid. You are most likely calling the method too early. Aborting modification.");
+                return;
+            }
+            if (!ValidateItem(CurrentTransformedItem))
+            {
+                instance.Logger.LogError("The current item transformation sent to ModifyTransformation for " + VoidItem!.name + " is not valid. Aborting modification.");
+                return;
+            }
+            if (instance.tooLate)
+            {
+                instance.Logger.LogError("ModifyTransformation was called too late for " + VoidItem.name + ", aborting modification.");
+                return;
+            }
+            if (modification == VoidItemModification.ModificationType.Modify)
+            {
+                if (!ValidateItem(ItemToTransformInto))
+                {
+                    instance.Logger.LogError("Modification type for void item " + VoidItem!.name + " is set to modify, yet the new ItemDef transformation is not valid. Aborting modification.");
+                    return;
+                }
+                instance.modifications.Add(new VoidItemModification(VoidItem!, CurrentTransformedItem!, ItemToTransformInto!, modification));
+                return;
+            }
+            instance.modifications.Add(new VoidItemModification(VoidItem!, CurrentTransformedItem!, null, modification));
+        }
+
+        public static void ModifyTransformation(string VoidItemName, string CurrentTransformedItemName, string ItemToTransformIntoName, VoidItemModification.ModificationType modification)
+        {
+            if (string.IsNullOrEmpty(VoidItemName))
+            {
+                instance.Logger.LogError("Void item name sent into ModifyTransformation is null or empty. Aborting modification.");
+                return;
+            }
+            if (string.IsNullOrEmpty(CurrentTransformedItemName))
+            {
+                instance.Logger.LogError("Current Transformed Item Name sent in for " + VoidItemName + " is null or empty. Aborting modification.");
+                return;
+            }
+            if (instance.tooLate)
+            {
+                instance.Logger.LogError("ModifyTransformation for " + VoidItemName + " was called too late, aborting modification.");
+                return;
+            }
+            if (modification == VoidItemModification.ModificationType.Modify)
+            {
+                if (string.IsNullOrEmpty(ItemToTransformIntoName))
+                {
+                    instance.Logger.LogError("Modification type for " + VoidItemName + " is set to Modify, yet the new transformation name is null. Aborting modification.");
+                    return;
+                }
+                instance.modifications.Add(new VoidItemModification(VoidItemName, CurrentTransformedItemName, ItemToTransformIntoName!, modification));
+            }
+            instance.modifications.Add(new VoidItemModification(VoidItemName, CurrentTransformedItemName, null, modification));
         }
     }
 }

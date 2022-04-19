@@ -19,6 +19,7 @@ namespace VoidItemAPI
         public static VoidItemAPI instance;
         public BepInEx.Logging.ManualLogSource Logger;
         public List<CustomVoidEntry> entries;
+        public List<VoidItemModification> modifications;
         public Harmony harmony;
         public bool tooLate = false;
         public bool defsUsed = true;
@@ -35,6 +36,7 @@ namespace VoidItemAPI
             instance = this;
             instance.Logger = base.Logger;
             instance.entries = new List<CustomVoidEntry>();
+            instance.modifications = new List<VoidItemModification>();
             instance.harmony = new Harmony(MODGUID);
 
             new PatchClassProcessor(harmony, typeof(VoidItemAPI)).Patch();
