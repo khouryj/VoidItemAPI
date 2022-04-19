@@ -7,6 +7,7 @@ using BepInEx;
 using RoR2.ExpansionManagement;
 using System.Linq;
 
+#pragma warning disable CS8632
 namespace VoidItemAPI
 {
     [BepInPlugin(MODGUID, MODNAME, MODVERSION)]
@@ -39,6 +40,8 @@ namespace VoidItemAPI
             instance.entries = new List<CustomVoidEntry>();
             instance.modifications = new List<VoidItemModification>();
             instance.harmony = new Harmony(MODGUID);
+            VoidTransformation.ModifyTransformation("CritGlassesVoid", "CritGlasses", "SprintOutOfCombat", VoidItemModification.ModificationType.Modify);
+            VoidTransformation.ModifyTransformation("CritGlassesVoid", "SprintOutOfCombat", null, VoidItemModification.ModificationType.Remove);
 
             new PatchClassProcessor(harmony, typeof(VoidItemAPI)).Patch();
         }
@@ -80,6 +83,8 @@ namespace VoidItemAPI
                 instance.Logger.LogMessage("Successfully created a transformation for " + entry.VoidItem.name + "!");
             }
 
+            ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = instance.newTransformationTable.ToArray();
+            
             IEnumerable<VoidItemModification> modDefs = instance.modifications.Where(x => x.transformType == CustomVoidEntry.TransformType.Def);
             IEnumerable<VoidItemModification> modNames = instance.modifications.Where(x => x.transformType == CustomVoidEntry.TransformType.Name);
 
@@ -93,13 +98,14 @@ namespace VoidItemAPI
                 {
                     RemoveTransformation(mod);
                 }
+                ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = instance.newTransformationTable.ToArray();
             }
             foreach (VoidItemModification mod in modNames)
             {
                 ItemDef VoidItem = ValidateItemString(mod.VoidItemName);
                 ItemDef CurrentTransformedItem = ValidateItemString(mod.CurrentTransformedItemName);
                 ItemDef NewTransformation = ValidateItemString(mod.NewTransformationName);
-                if (!ValidateItem(VoidItem) || !ValidateItem(CurrentTransformedItem) || !ValidateItem(NewTransformation))
+                if (!ValidateItem(VoidItem) || !ValidateItem(CurrentTransformedItem))
                 {
                     instance.Logger.LogError("Issue modifying transformation for " + mod.VoidItemName + ". Aborting this modification.");
                     continue;
@@ -112,6 +118,7 @@ namespace VoidItemAPI
                 {
                     RemoveTransformation(new VoidItemModification(VoidItem, CurrentTransformedItem, NewTransformation, mod.modification));
                 }
+                ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = instance.newTransformationTable.ToArray();
             }
 
             ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = instance.newTransformationTable.ToArray();

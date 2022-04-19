@@ -1,7 +1,7 @@
 ﻿using static VoidItemAPI.VoidItemAPI;
 using RoR2;
 using System.Linq;
-
+#pragma warning disable CS8632
 namespace VoidItemAPI
 {
     public class CustomVoidEntry
@@ -168,7 +168,7 @@ namespace VoidItemAPI
             }
         }
 
-        public static void ModifyTransformation(ItemDef? VoidItem, ItemDef? CurrentTransformedItem, ItemDef? ItemToTransformInto, VoidItemModification.ModificationType modification)
+        public static void ModifyTransformation(ItemDef? VoidItem, ItemDef? CurrentTransformedItem, ItemDef? NewTransformation, VoidItemModification.ModificationType modification)
         {
             if (!ValidateItem(VoidItem))
             {
@@ -187,18 +187,18 @@ namespace VoidItemAPI
             }
             if (modification == VoidItemModification.ModificationType.Modify)
             {
-                if (!ValidateItem(ItemToTransformInto))
+                if (!ValidateItem(NewTransformation))
                 {
                     instance.Logger.LogError("Modification type for void item " + VoidItem!.name + " is set to modify, yet the new ItemDef transformation is not valid. Aborting modification.");
                     return;
                 }
-                instance.modifications.Add(new VoidItemModification(VoidItem!, CurrentTransformedItem!, ItemToTransformInto!, modification));
+                instance.modifications.Add(new VoidItemModification(VoidItem!, CurrentTransformedItem!, NewTransformation!, modification));
                 return;
             }
             instance.modifications.Add(new VoidItemModification(VoidItem!, CurrentTransformedItem!, null, modification));
         }
 
-        public static void ModifyTransformation(string VoidItemName, string CurrentTransformedItemName, string ItemToTransformIntoName, VoidItemModification.ModificationType modification)
+        public static void ModifyTransformation(string VoidItemName, string CurrentTransformedItemName, string NewTransformationName, VoidItemModification.ModificationType modification)
         {
             if (string.IsNullOrEmpty(VoidItemName))
             {
@@ -217,12 +217,12 @@ namespace VoidItemAPI
             }
             if (modification == VoidItemModification.ModificationType.Modify)
             {
-                if (string.IsNullOrEmpty(ItemToTransformIntoName))
+                if (string.IsNullOrEmpty(NewTransformationName))
                 {
                     instance.Logger.LogError("Modification type for " + VoidItemName + " is set to Modify, yet the new transformation name is null. Aborting modification.");
                     return;
                 }
-                instance.modifications.Add(new VoidItemModification(VoidItemName, CurrentTransformedItemName, ItemToTransformIntoName!, modification));
+                instance.modifications.Add(new VoidItemModification(VoidItemName, CurrentTransformedItemName, NewTransformationName!, modification));
                 return;
             }
             instance.modifications.Add(new VoidItemModification(VoidItemName, CurrentTransformedItemName, null, modification));
