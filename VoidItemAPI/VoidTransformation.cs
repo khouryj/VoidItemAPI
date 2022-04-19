@@ -223,6 +223,7 @@ namespace VoidItemAPI
                     return;
                 }
                 instance.modifications.Add(new VoidItemModification(VoidItemName, CurrentTransformedItemName, ItemToTransformIntoName!, modification));
+                return;
             }
             instance.modifications.Add(new VoidItemModification(VoidItemName, CurrentTransformedItemName, null, modification));
         }
