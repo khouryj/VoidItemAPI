@@ -41,7 +41,6 @@ namespace VoidItemAPI
             instance.modifications = new List<VoidItemModification>();
             instance.harmony = new Harmony(MODGUID);
             VoidTransformation.ModifyTransformation("CritGlassesVoid", "CritGlasses", "SprintOutOfCombat", VoidItemModification.ModificationType.Modify);
-            VoidTransformation.ModifyTransformation("CritGlassesVoid", "SprintOutOfCombat", null, VoidItemModification.ModificationType.Remove);
 
             new PatchClassProcessor(harmony, typeof(VoidItemAPI)).Patch();
         }
@@ -98,13 +97,15 @@ namespace VoidItemAPI
                 {
                     RemoveTransformation(mod);
                 }
-                ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = instance.newTransformationTable.ToArray();
             }
             foreach (VoidItemModification mod in modNames)
             {
                 ItemDef VoidItem = ValidateItemString(mod.VoidItemName);
                 ItemDef CurrentTransformedItem = ValidateItemString(mod.CurrentTransformedItemName);
-                ItemDef NewTransformation = ValidateItemString(mod.NewTransformationName);
+                ItemDef NewTransformation = null;
+                if(mod.modification == VoidItemModification.ModificationType.Modify)
+                    NewTransformation = ValidateItemString(mod.NewTransformationName);
+                
                 if (!ValidateItem(VoidItem) || !ValidateItem(CurrentTransformedItem))
                 {
                     instance.Logger.LogError("Issue modifying transformation for " + mod.VoidItemName + ". Aborting this modification.");
@@ -118,7 +119,6 @@ namespace VoidItemAPI
                 {
                     RemoveTransformation(new VoidItemModification(VoidItem, CurrentTransformedItem, NewTransformation, mod.modification));
                 }
-                ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = instance.newTransformationTable.ToArray();
             }
 
             ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = instance.newTransformationTable.ToArray();
