@@ -29,15 +29,17 @@ For example: Red Whip = RoR2Content.Items.SprintOutOfCombat, which would mean th
 There are also 2 different methods for modifying existing transformations in the table. <br />
 The same rules apply to these methods about timing on using ItemDefs vs. Strings.
 
-`ModifyTransformation(ItemDef VoidItem, ItemDef CurrentTransformation, ItemDef NewTransformation, VoidItemModification.ModificationType type)` <br />
-
-`ModifyTransformation(string VoidItemName, string CurrentTransformationName, string NewTransformationName, VoidItemModification.ModificationType type)` <br />
+```
+ModifyTransformation(ItemDef VoidItem, ItemDef CurrentTransformation, ItemDef NewTransformation, VoidItemModification.ModificationType type)
+ModifyTransformation(string VoidItemName, string CurrentTransformationName, string NewTransformationName, VoidItemModification.ModificationType type)
+```
 
 With these two methods, you can modify or remove existing transformations by supplying the Defs or Names into these methods. If you are removing a transformation, just set the third parameter to null, and ensure that the fourth parameter is set to `VoidItemModification.ModificationType.Remove`, and the API will handle it for you. <br />
 Examples: <br />
-`ModifyTransformation(DLC1Content.Items.CritGlassesVoid, RoR2Content.Items.CritGlasses, RoR2Content.Items.SprintOutOfCombat, VoidItemModification.ModificationType.Modify);  //This changes the transformation for lost seer lenses from the crit glasses to red whip` <br />
-
-`ModifyTransformation("CritGlassesVoid", "CritGlasses", null, VoidItemModification.ModificationType.Remove);  //This will remove the CritGlasses transformation on lost seer lenses`
+```
+ModifyTransformation(DLC1Content.Items.CritGlassesVoid, RoR2Content.Items.CritGlasses, RoR2Content.Items.SprintOutOfCombat, VoidItemModification.ModificationType.Modify);  //This changes the transformation for lost seer lenses from the crit glasses to red whip
+ModifyTransformation("CritGlassesVoid", "CritGlasses", null, VoidItemModification.ModificationType.Remove);  //This will remove the CritGlasses transformation on lost seer lenses
+```
 
 That's about it for the guide. You can declare the dependency at the top of your main class by typing: <br />
 `[BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]`
