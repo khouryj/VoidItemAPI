@@ -40,7 +40,6 @@ namespace VoidItemAPI
             instance.entries = new List<CustomVoidEntry>();
             instance.modifications = new List<VoidItemModification>();
             instance.harmony = new Harmony(MODGUID);
-            VoidTransformation.ModifyTransformation("CritGlassesVoid", "CritGlasses", "SprintOutOfCombat", VoidItemModification.ModificationType.Modify);
 
             new PatchClassProcessor(harmony, typeof(VoidItemAPI)).Patch();
         }
