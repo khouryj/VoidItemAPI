@@ -2,3 +2,6 @@
 
 # Publicizer001: Forced access of itemRelationships can lead to unintended behavior. Check for public members first.
 dotnet_diagnostic.Publicizer001.severity = none
+
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none

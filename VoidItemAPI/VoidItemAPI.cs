@@ -61,8 +61,7 @@ namespace VoidItemAPI
                     entry.VoidItem.requiredExpansion = ExpansionCatalog.expansionDefs.FirstOrDefault(x => x.nameToken == "DLC1_NAME");
                 }
             }
-            IEnumerable<CustomVoidEntry> defs = instance.entries.Where(x => x.transformType == CustomVoidEntry.TransformType.Def);
-            IEnumerable<CustomVoidEntry> names = instance.entries.Where(x => x.transformType == CustomVoidEntry.TransformType.Name);
+            IEnumerable<CustomVoidEntry> defs = instance.entries.Split(x => x.transformType == CustomVoidEntry.TransformType.Def, out IEnumerable<CustomVoidEntry> names);
             
             foreach (CustomVoidEntry entry in defs)
             {
@@ -80,12 +79,8 @@ namespace VoidItemAPI
                 instance.newTransformationTable.Add(new ItemDef.Pair() { itemDef1 = itemDef, itemDef2 = entry.VoidItem });
                 instance.Logger.LogMessage("Successfully created a transformation for " + entry.VoidItem.name + "!");
             }
-
-            ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = instance.newTransformationTable.ToArray();
             
-            IEnumerable<VoidItemModification> modDefs = instance.modifications.Where(x => x.transformType == CustomVoidEntry.TransformType.Def);
-            IEnumerable<VoidItemModification> modNames = instance.modifications.Where(x => x.transformType == CustomVoidEntry.TransformType.Name);
-
+            IEnumerable<VoidItemModification> modDefs = instance.modifications.Split(x => x.transformType == CustomVoidEntry.TransformType.Def, out IEnumerable<VoidItemModification> modNames);
             foreach (VoidItemModification mod in modDefs)
             {
                 if (mod.modification == VoidItemModification.ModificationType.Modify)
